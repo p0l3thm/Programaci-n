@@ -6,128 +6,449 @@
     <title>Control de Grúa Torre</title>
     <style>
         :root {
-            --bg-color: #0f172a;
-            --btn-bg: #1e293b;
-            --btn-hover: #334155;
+            --bg-color: #100d24;
+            --panel-color: rgba(15, 23, 42, 0.85);
+            --btn-bg: #1f2937;
+            --btn-hover: #374151;
             --btn-active: #3b82f6;
-            --text-color: #f8fafc;
+            --text-color: #eef2ff;
+            --accent: #8b5cf6;
             --danger: #ef4444;
+            --beam: #cbd5e1;
+            --shadow: rgba(2, 12, 27, 0.5);
         }
+
+        * { box-sizing: border-box; }
+
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            min-height: 100vh;
+            justify-content: flex-start;
+            gap: 24px;
+            padding: 24px;
+            background: radial-gradient(circle at top, rgba(139,92,246,0.18), transparent 28%),
+                        radial-gradient(circle at bottom right, rgba(59,130,246,0.2), transparent 28%),
+                        var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             user-select: none;
         }
-        h1 { margin-bottom: 30px; font-weight: 300; letter-spacing: 2px; }
+
+        h1 {
+            margin: 0;
+            font-weight: 400;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-size: clamp(1.8rem, 2.4vw, 2.8rem);
+        }
+
+        .panel {
+            width: min(1040px, 100%);
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        .panel > .visual {
+            background: linear-gradient(180deg, rgba(15,23,42,0.96), rgba(15,23,42,0.8));
+            border: 1px solid rgba(148,163,184,0.12);
+            border-radius: 30px;
+            padding: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel > .info {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .visual::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 55% 14%, rgba(99,102,241,0.18), transparent 18%),
+                        radial-gradient(circle at 18% 86%, rgba(56,189,248,0.14), transparent 14%);
+            pointer-events: none;
+        }
+
+        .horizon {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 140px;
+            background: linear-gradient(180deg, transparent 0%, rgba(15,23,42,0.6) 40%, rgba(15,23,42,1) 100%);
+            pointer-events: none;
+        }
+
+        .ground-lines {
+            position: absolute;
+            bottom: 24px;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background-image: linear-gradient(90deg, rgba(255,255,255,0.06) 0.5px, transparent 0.5px);
+            background-size: 18px 18px;
+            opacity: 0.7;
+        }
+
+        .crane-container {
+            position: relative;
+            width: 100%;
+            height: 420px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            overflow: hidden;
+            transform-style: preserve-3d;
+        }
+
+        .crane-wrapper {
+            position: absolute;
+            left: 50%;
+            bottom: 18px;
+            transform: translateX(-50%);
+            width: 260px;
+            height: 380px;
+            perspective: 1200px;
+        }
+
+        .crane {
+            position: absolute;
+            inset: 0;
+            transform-style: preserve-3d;
+            transform: translateX(0px) rotateX(8deg);
+            transition: transform 0.1s ease-out;
+        }
+
+        .tower {
+            position: absolute;
+            left: 52px;
+            bottom: 0;
+            width: 22px;
+            height: 320px;
+            background: linear-gradient(180deg, #dde4f0 0%, #9ca7bb 100%);
+            border-radius: 10px;
+            box-shadow: inset 0 0 0 2px rgba(255,255,255,0.14), 0 18px 50px rgba(0,0,0,0.2);
+        }
+
+        .tower::before {
+            content: '';
+            position: absolute;
+            inset: 10px 6px 8px 6px;
+            border: 1px dashed rgba(15,23,42,0.4);
+            border-radius: 6px;
+        }
+
+        .boom {
+            position: absolute;
+            bottom: 260px;
+            left: 68px;
+            width: 320px;
+            height: 20px;
+            background: linear-gradient(90deg, #cbd5e1 0%, #64748b 100%);
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+            transform-origin: left center;
+            transform: rotate(-12deg);
+        }
+
+        .cabin {
+            position: absolute;
+            left: 36px;
+            bottom: 210px;
+            width: 90px;
+            height: 70px;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            border-radius: 18px;
+            border: 2px solid rgba(255,255,255,0.12);
+            box-shadow: inset 0 2px 10px rgba(255,255,255,0.08);
+        }
+
+        .cabin::before {
+            content: '';
+            position: absolute;
+            left: 14px;
+            top: 14px;
+            width: 52px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0.06));
+            box-shadow: inset 0 0 0 2px rgba(255,255,255,0.12);
+        }
+
+        .hoist {
+            position: absolute;
+            left: 340px;
+            bottom: 220px;
+            width: 6px;
+            height: 160px;
+            background: linear-gradient(180deg, #64748b 0%, #334155 100%);
+            transform: rotate(2deg);
+            transform-origin: top center;
+        }
+
+        .hook-rail {
+            position: absolute;
+            left: 336px;
+            bottom: 240px;
+            width: 14px;
+            height: 18px;
+            background: radial-gradient(circle at 50% 40%, #f8fafc, #64748b 80%);
+            border-radius: 50%;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+        }
+
+        .hook {
+            position: absolute;
+            left: 332px;
+            bottom: 228px;
+            width: 20px;
+            height: 98px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            transform-origin: top center;
+        }
+
+        .hook::before {
+            content: '';
+            width: 8px;
+            height: 60px;
+            background: linear-gradient(180deg, #cbd5e1, #475569);
+            border-radius: 4px;
+            box-shadow: inset 0 2px 6px rgba(255,255,255,0.12);
+        }
+
+        .hook::after {
+            content: '';
+            width: 28px;
+            height: 18px;
+            background: linear-gradient(180deg, #0f172a, #334155);
+            border-radius: 0 0 12px 12px;
+            position: absolute;
+            bottom: 0;
+            left: -4px;
+        }
+
+        .controls-panel {
+            background: var(--panel-color);
+            border: 1px solid rgba(148,163,184,0.12);
+            border-radius: 30px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        .controls-panel .label {
+            margin: 0;
+            text-align: left;
+            color: #cbd5e1;
+        }
+
         .control-grid {
             display: grid;
-            grid-template-columns: repeat(3, 80px);
-            grid-template-rows: repeat(3, 80px);
-            gap: 15px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(3, 88px);
+            grid-template-rows: repeat(3, 88px);
+            gap: 16px;
+            justify-content: center;
         }
+
         .btn {
+            width: 88px;
+            height: 88px;
+            border: 1px solid rgba(148,163,184,0.16);
+            border-radius: 18px;
             background-color: var(--btn-bg);
             color: var(--text-color);
-            border: 2px solid transparent;
-            border-radius: 12px;
-            font-size: 24px;
-            display: flex;
+            cursor: pointer;
+            font-size: 1.4rem;
+            font-weight: 600;
+            transition: transform 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            line-height: 1.1;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.12);
         }
-        .btn:active, .btn.active {
-            background-color: var(--btn-active);
-            transform: scale(0.95);
-            box-shadow: 0 0 15px var(--btn-active);
-        }
-        .btn.stop { grid-column: 2; grid-row: 2; background-color: var(--danger); font-size: 16px; font-weight: bold; }
+
+        .btn:hover { background-color: var(--btn-hover); }
+        .btn:active, .btn.active { transform: translateY(2px); background-color: var(--btn-active); box-shadow: 0 8px 18px rgba(59,130,246,0.35); }
+
+        .btn.stop { grid-column: 2; grid-row: 2; background-color: var(--danger); color: #fff; font-size: 1rem; }
         .btn.up { grid-column: 2; grid-row: 1; }
         .btn.down { grid-column: 2; grid-row: 3; }
         .btn.left { grid-column: 1; grid-row: 2; }
         .btn.right { grid-column: 3; grid-row: 2; }
-        
+
         .elevacion-controls {
-            display: flex;
-            gap: 20px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
         }
-        .elevacion-controls .btn { width: 80px; height: 80px; }
-        .label { margin-bottom: 10px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; text-align: center;}
+
+        .elevacion-controls .btn { height: 72px; }
+
+        .help-text {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 960px) {
+            .panel { grid-template-columns: 1fr; }
+            .crane-container { height: 360px; }
+            .controls-panel { padding: 22px; }
+        }
+
+        @media (max-width: 620px) {
+            body { padding: 16px; }
+            .control-grid { grid-template-columns: repeat(3, 72px); grid-template-rows: repeat(3, 72px); gap: 12px; }
+            .btn { width: 72px; height: 72px; font-size: 1.1rem; }
+            .elevacion-controls .btn { height: 60px; }
+        }
     </style>
 </head>
 <body>
-
     <h1>GRÚA TORRE</h1>
 
-    <div class="label">Traslación y Giro</div>
-    <div class="control-grid">
-        <button class="btn up" data-cmd="F">▲</button>
-        <button class="btn left" data-cmd="L">◀</button>
-        <button class="btn stop" data-cmd="S">STOP</button>
-        <button class="btn right" data-cmd="R">▶</button>
-        <button class="btn down" data-cmd="B">▼</button>
-    </div>
+    <div class="panel">
+        <section class="info">
+            <div>
+                <div class="label">Controles de la grúa</div>
+                <div class="control-grid">
+                    <button class="btn up" data-cmd="F">▲</button>
+                    <button class="btn left" data-cmd="L">◀</button>
+                    <button class="btn stop" data-cmd="S">STOP</button>
+                    <button class="btn right" data-cmd="R">▶</button>
+                    <button class="btn down" data-cmd="B">▼</button>
+                </div>
+            </div>
 
-    <div class="label">Elevación</div>
-    <div class="elevacion-controls">
-        <button class="btn" data-cmd="U">▲<br>Subir</button>
-        <button class="btn" data-cmd="D">▼<br>Bajar</button>
+            <div>
+                <div class="label">Elevación</div>
+                <div class="elevacion-controls">
+                    <button class="btn" data-cmd="U">▲<br>Subir</button>
+                    <button class="btn" data-cmd="D">▼<br>Bajar</button>
+                </div>
+            </div>
+
+            <div class="help-text">
+                Mantén presionado el botón para que la grúa real se mueva y la silueta en pantalla replique el movimiento en tiempo real.
+            </div>
+        </section>
+
+        <section class="visual">
+            <div class="crane-container">
+                <div class="crane-wrapper">
+                    <div class="crane" id="crane">
+                        <div class="tower"></div>
+                        <div class="boom"></div>
+                        <div class="cabin"></div>
+                        <div class="hoist"></div>
+                        <div class="hook" id="hook"></div>
+                        <div class="hook-rail"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ground-lines"></div>
+            <div class="horizon"></div>
+        </section>
+
+            <div>
+                <div class="label">Elevación</div>
+                <div class="elevacion-controls">
+                    <button class="btn" data-cmd="U">▲<br>Subir</button>
+                    <button class="btn" data-cmd="D">▼<br>Bajar</button>
+                </div>
+            </div>
+
+            <div class="help-text">
+                Mantén presionado el botón para que la grúa real se mueva y la silueta en pantalla replique el movimiento en tiempo real.
+            </div>
+        </section>
     </div>
 
     <script>
         let intervalId = null;
         let activeCmd = 'S';
+        let positionX = 0;
+        let hookOffset = 0;
+
+        const crane = document.getElementById('crane');
+        const hook = document.getElementById('hook');
 
         const sendCommand = async (cmd) => {
             try {
                 await fetch(`/api/control?cmd=${cmd}`, { method: 'GET' });
             } catch (e) {
-                console.error("Error sending command", e);
+                console.error('Error sending command', e);
             }
         };
 
+        const updateVisuals = () => {
+            crane.style.transform = `translateX(${positionX}px) rotateX(8deg)`;
+            hook.style.transform = `translateY(${hookOffset}px)`;
+        };
+
+        const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+        const animate = () => {
+            if (activeCmd === 'R') {
+                positionX = clamp(positionX + 2, -140, 140);
+            } else if (activeCmd === 'L') {
+                positionX = clamp(positionX - 2, -140, 140);
+            }
+
+            if (activeCmd === 'U') {
+                hookOffset = clamp(hookOffset - 2, -72, 72);
+            } else if (activeCmd === 'D') {
+                hookOffset = clamp(hookOffset + 2, -72, 72);
+            }
+
+            updateVisuals();
+            requestAnimationFrame(animate);
+        };
+
         const startAction = (cmd) => {
-            if(intervalId) clearInterval(intervalId);
+            if (intervalId) clearInterval(intervalId);
             activeCmd = cmd;
             sendCommand(cmd);
-            // Send command repeatedly every 200ms to avoid timeout
             intervalId = setInterval(() => sendCommand(cmd), 200);
+            updateVisuals();
         };
 
         const stopAction = () => {
-            if(intervalId) clearInterval(intervalId);
+            if (intervalId) clearInterval(intervalId);
             activeCmd = 'S';
             sendCommand('S');
+            updateVisuals();
         };
 
         document.querySelectorAll('.btn').forEach(btn => {
             const cmd = btn.getAttribute('data-cmd');
-            
-            // Touch events for mobile
+
             btn.addEventListener('touchstart', (e) => { e.preventDefault(); startAction(cmd); btn.classList.add('active'); });
             btn.addEventListener('touchend', (e) => { e.preventDefault(); stopAction(); btn.classList.remove('active'); });
-            
-            // Mouse events for desktop
             btn.addEventListener('mousedown', () => { startAction(cmd); btn.classList.add('active'); });
             btn.addEventListener('mouseup', () => { stopAction(); btn.classList.remove('active'); });
-            btn.addEventListener('mouseleave', () => { 
-                if(btn.classList.contains('active')) {
-                    stopAction(); 
-                    btn.classList.remove('active'); 
+            btn.addEventListener('mouseleave', () => {
+                if (btn.classList.contains('active')) {
+                    stopAction();
+                    btn.classList.remove('active');
                 }
             });
         });
+
+        requestAnimationFrame(animate);
     </script>
 </body>
 </html>
